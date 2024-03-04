@@ -1,0 +1,51 @@
+.todoItem {
+    position: relative;
+    padding-right: 30px;
+    margin-bottom: 5px;
+    gap: 20px;
+  }
+  
+  .removeButton {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: none;
+  }
+  
+  .todoItem:hover .removeButton {
+    display: inline-block;
+  }
+
+  .editButton {
+    position: absolute;
+    top: 0;
+    right: 80px;
+    display: none;
+  }
+  
+  .todoItem:hover .editButton {
+    display: inline-block;
+  }
+
+  .completeButton {
+    position: absolute;
+    top: 0;
+    right: 120px;
+    display: none;
+  }
+  
+  .todoItem:hover .completeButton {
+    display: inline-block;
+  }
+    
+  .inCompleteButton {
+    position: absolute;
+    top: 0;
+    right: 280px;
+    display: none;
+  }
+  
+  .todoItem:hover .inCompleteButton {
+    display: inline-block;
+  }
+    

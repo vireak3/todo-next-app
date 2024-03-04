@@ -1,10 +1,13 @@
 "use client"
 
 import React, { useState, useEffect } from 'react';
+import styles from './todos.module.css'; // Import CSS module
 
 export default function Todos() {
   const [todos, setTodos] = useState([]);
   const [newTodo, setNewTodo] = useState('');
+  const [editTodoId, setEditTodoId] = useState(null);
+  const [editTodoText, setEditTodoText] = useState('');
 
   useEffect(() => {
     fetch('/api/todo')
@@ -12,6 +15,13 @@ export default function Todos() {
       .then((data) => setTodos(data))
       .catch((error) => console.error('Error fetching todos:', error));
   }, []);
+
+  useEffect(() => {
+    fetch(`/api/todo?search=${newTodo}`)
+      .then((res) => res.json())
+      .then((data) => setTodos(data))
+      .catch((error) => console.error('Error fetching todos:', error));
+  },[newTodo])
 
   const handleAddTodo = (e) => {
     e.preventDefault();
@@ -38,8 +48,53 @@ export default function Todos() {
       .catch((error) => console.error('Error adding todo:', error));
   };
 
+  const handleRemoveTodo = (id) => {
+    fetch(`/api/todo?id=${id }`, {
+      method: 'DELETE'
+    })
+      .then(() => {
+        setTodos(todos.filter((todo) => todo.id !== id));
+      })
+      .catch((error) => console.error('Error removing todo:', error));
+  };
+
+  const handleEditTodo = (id, text) => {
+    setEditTodoId(id);
+    setEditTodoText(text);
+  };
+
+  const handleUpdateTodo = (id, newText) => {
+    fetch(`/api/todo?id=${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ todo: newText })
+    })
+      .then(() => {
+        setTodos(todos.map((todo) => (todo.id === id ? { ...todo, todo: newText } : todo)));
+        setEditTodoId(null);
+        setEditTodoText('');
+      })
+      .catch((error) => console.error('Error updating todo:', error));
+  };
+
+  const handleUpdateTodoStatus = (id, status) => {
+    fetch(`/api/todo?id=${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ isCompleted: status })
+    })
+      .then(() => {
+     
+      })
+      .catch((error) => console.error('Error updating todo:', error));
+  };
+
   return (
-    <div>
+    <div className='w-full'>
       <h1>Todo List</h1>
       <form onSubmit={handleAddTodo}>
         <input
@@ -51,8 +106,41 @@ export default function Todos() {
         <button type="submit">Add</button>
       </form>
       <ul>
-        {todos.map((todo) => (
-          <li key={todo.id}>{todo.todo}</li>
+        {todos.length === 0?"No result. Create a new one instead!":todos.map((todo) => (
+          <li key={todo.id} className={styles.todoItem}>
+
+            <div>
+              {editTodoId === todo.id ? (
+                <input
+                  type="text"
+                  value={editTodoText}
+                  onChange={(e) => setEditTodoText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleUpdateTodo(todo.id, editTodoText);
+                    }
+                  }}
+                />
+              ) : (
+                <>
+                  {todo.todo}
+                  <button className={styles.editButton} onClick={() => handleEditTodo(todo.id, todo.todo)}>
+                    Edit
+                  </button>
+                  <button className={styles.completeButton} onClick={() => handleUpdateTodoStatus(todo.id, true)}>
+                    Mark as Complete
+                  </button>
+                  <button className={styles.inCompleteButton} onClick={() => handleUpdateTodoStatus(todo.id, false)}>
+                    Mark as Incomplete
+                  </button>
+                  <button className={styles.removeButton} onClick={() => handleRemoveTodo(todo.id)}>
+                    Remove
+                  </button>
+                </>
+              )}
+            </div>
+            
+          </li>
         ))}
       </ul>
     </div>
