@@ -98,7 +98,7 @@ export default function Todos() {
   return (
     <div className='w-[650px]'>
       <h1>Todo List</h1>
-      <p>press "enter" when add or update todo.<br/>hover on todo list to do actions.</p>
+      <p>press enter when add or update todo.<br/>hover on todo list to do actions.</p>
       {/* <form onSubmit={handleAddTodo}> */}
       <input
         type="text"
