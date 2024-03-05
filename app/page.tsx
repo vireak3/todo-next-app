@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import Todos from './pages/todos'
+import Todos from './components/todos'
 
 export default function Home() {
   return (

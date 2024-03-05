@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styles from './todos.module.css'; // Import CSS module
 
 export default function Todos() {
@@ -8,6 +8,7 @@ export default function Todos() {
   const [newTodo, setNewTodo] = useState('');
   const [editTodoId, setEditTodoId] = useState(null);
   const [editTodoText, setEditTodoText] = useState('');
+  const inputRef = useRef(null);
 
   useEffect(() => {
     fetch('/api/todo')
@@ -21,7 +22,7 @@ export default function Todos() {
       .then((res) => res.json())
       .then((data) => setTodos(data))
       .catch((error) => console.error('Error fetching todos:', error));
-  },[newTodo])
+  }, [newTodo])
 
   const handleAddTodo = (e) => {
     e.preventDefault();
@@ -49,7 +50,7 @@ export default function Todos() {
   };
 
   const handleRemoveTodo = (id) => {
-    fetch(`/api/todo?id=${id }`, {
+    fetch(`/api/todo?id=${id}`, {
       method: 'DELETE'
     })
       .then(() => {
@@ -59,6 +60,7 @@ export default function Todos() {
   };
 
   const handleEditTodo = (id, text) => {
+    inputRef.current.focus();
     setEditTodoId(id);
     setEditTodoText(text);
   };
@@ -88,29 +90,46 @@ export default function Todos() {
       body: JSON.stringify({ isCompleted: status })
     })
       .then(() => {
-     
+        setTodos(todos.map((todo) => (todo.id === id ? { ...todo, isCompleted: status } : todo)));
       })
       .catch((error) => console.error('Error updating todo:', error));
   };
 
   return (
-    <div className='w-full'>
+    <div className='w-[650px]'>
       <h1>Todo List</h1>
-      <form onSubmit={handleAddTodo}>
-        <input
-          type="text"
-          value={newTodo}
-          onChange={(e) => setNewTodo(e.target.value)}
-          placeholder="Add new todo..."
-        />
-        <button type="submit">Add</button>
-      </form>
+      <p>press "enter" when add or update todo.<br/>hover on todo list to do actions.</p>
+      {/* <form onSubmit={handleAddTodo}> */}
+      <input
+        type="text"
+        ref={inputRef}
+        value={editTodoText ? editTodoText : newTodo}
+        onChange={(e) => {
+          editTodoId ?
+            setEditTodoText(e.target.value)
+            :
+            setNewTodo(e.target.value)
+        }}
+        placeholder="Add new todo..."
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            if (editTodoId && editTodoText) {
+              handleUpdateTodo(editTodoId, editTodoText)
+              return
+            }
+            else
+              handleAddTodo(e)
+          }
+        }}
+      />
+
+      {/* </form> */}
       <ul>
-        {todos.length === 0?"No result. Create a new one instead!":todos.map((todo) => (
+        {todos.length === 0 ? "No result. Create a new one instead!" : todos.map((todo) => (
           <li key={todo.id} className={styles.todoItem}>
 
             <div>
-              {editTodoId === todo.id ? (
+              {/* {editTodoId === todo.id ? (
                 <input
                   type="text"
                   value={editTodoText}
@@ -121,25 +140,25 @@ export default function Todos() {
                     }
                   }}
                 />
-              ) : (
-                <>
-                  {todo.todo}
-                  <button className={styles.editButton} onClick={() => handleEditTodo(todo.id, todo.todo)}>
-                    Edit
-                  </button>
-                  <button className={styles.completeButton} onClick={() => handleUpdateTodoStatus(todo.id, true)}>
-                    Mark as Complete
-                  </button>
-                  <button className={styles.inCompleteButton} onClick={() => handleUpdateTodoStatus(todo.id, false)}>
-                    Mark as Incomplete
-                  </button>
-                  <button className={styles.removeButton} onClick={() => handleRemoveTodo(todo.id)}>
-                    Remove
-                  </button>
-                </>
-              )}
+              ) : ( */}
+              <>
+                {todo.isCompleted ? <s>{todo.todo}</s> : todo.todo}
+                <button className={styles.editButton} onClick={() => handleEditTodo(todo.id, todo.todo)}>
+                  Edit
+                </button>
+                <button className={styles.completeButton} onClick={() => handleUpdateTodoStatus(todo.id, true)}>
+                  Mark as Complete
+                </button>
+                <button className={styles.inCompleteButton} onClick={() => handleUpdateTodoStatus(todo.id, false)}>
+                  Mark as Incomplete
+                </button>
+                <button className={styles.removeButton} onClick={() => handleRemoveTodo(todo.id)}>
+                  Remove
+                </button>
+              </>
+              {/* // )} */}
             </div>
-            
+
           </li>
         ))}
       </ul>
